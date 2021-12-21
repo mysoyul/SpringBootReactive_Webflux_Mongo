@@ -49,7 +49,7 @@ public class ProductService {
         return productDtoMono.map(AppUtils::dtoToEntity)
                 .flatMap(repository::insert)
                 .map(insProduct -> ResponseEntity.ok(AppUtils.entityToDto(insProduct)))
-                .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
+                .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());  //406
     }
 
     public Mono<ProductDto> updateProduct(Mono<ProductDto> productDtoMono, String id){
