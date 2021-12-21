@@ -16,6 +16,7 @@ public class ProductRouterFunction {
     @Bean
     public RouterFunction<ServerResponse> routerFunction(ProductHandler productHandler) {
         return route(GET("/router/products"),productHandler::getProducts)
-                .andRoute(GET("/router/products/{id}"),productHandler::getProduct);
+                .andRoute(GET("/router/products/{id}"),productHandler::getProduct)
+                .andRoute(GET("/router/product-range"), productHandler::getProductInRange);
     }
 }

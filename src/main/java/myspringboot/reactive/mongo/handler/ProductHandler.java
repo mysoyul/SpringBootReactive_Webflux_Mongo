@@ -5,6 +5,7 @@ import myspringboot.reactive.mongo.dto.ProductDto;
 import myspringboot.reactive.mongo.repository.ProductRepository;
 import myspringboot.reactive.mongo.service.ProductService;
 import myspringboot.reactive.mongo.utils.AppUtils;
+import org.springframework.data.domain.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,18 @@ public class ProductHandler {
                 .switchIfEmpty(response404);
     }
 
+    public Mono<ServerResponse> getProductInRange(ServerRequest request) {
+        //Optional<String> request.queryParam("min")
+        double min = Double.parseDouble(request.queryParam("min").orElseGet(() -> Double.toString(Double.MIN_VALUE)));
+        System.out.println("min = " + min);
+        double max = Double.parseDouble(request.queryParam("max").orElseGet(() -> Double.toString(Double.MAX_VALUE)));
+        System.out.println("max = " + max);
 
+        Flux<ProductDto> productDtoFlux = repository.findByPriceBetween(Range.closed(min, max)).map(AppUtils::entityToDto);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(productDtoFlux, ProductDto.class)
+                .switchIfEmpty(response404);
+    }
 }
