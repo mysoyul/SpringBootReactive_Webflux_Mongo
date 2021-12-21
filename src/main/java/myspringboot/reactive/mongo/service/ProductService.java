@@ -68,23 +68,31 @@ public class ProductService {
                             })
         );
 
-//        return repository.findById(id)
-//                //.flatMap(existProduct -> productDtoMono.map(dto -> AppUtils.dtoToEntity(dto))) //Mono<Product>
-//                .flatMap(existProduct -> {
-//                    existProduct.setName();
-//                })
-//                .doOnNext(product -> product.setId(id))
-//                .flatMap(repository::save)
-//                .map(AppUtils::entityToDto);
     }
 
     public Mono<ResponseEntity<ProductDto>> updateProductRE(Mono<ProductDto> productDtoMono, String id){
-        return repository.findById(id)
-                .flatMap(existProduct -> productDtoMono.map(AppUtils::dtoToEntity))
-                .doOnNext(product -> product.setId(id))
-                .flatMap(repository::save)
-                .map(updProduct -> ResponseEntity.ok(AppUtils.entityToDto(updProduct)))
+        Mono<Product> productMono = productDtoMono.map(AppUtils::dtoToEntity);
+        Mono<ProductDto> updatedProductDtoMono = productMono.flatMap(product ->
+                repository.findById(id)
+                        .flatMap(existProduct -> {
+                            existProduct.setName(product.getName());
+                            if (product.getQty() != 0) {
+                                existProduct.setQty(product.getQty());
+                            }
+                            if (product.getPrice() != 0.0) {
+                                existProduct.setPrice(product.getPrice());
+                            }
+                            return repository.save(existProduct).map(AppUtils::entityToDto);
+                        })
+        );
+        return updatedProductDtoMono.map(p -> ResponseEntity.ok(p))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+//        return repository.findById(id)
+//                .flatMap(existProduct -> productDtoMono.map(AppUtils::dtoToEntity))
+//                .doOnNext(product -> product.setId(id))
+//                .flatMap(repository::save)
+//                .map(updProduct -> ResponseEntity.ok(AppUtils.entityToDto(updProduct)))
+//                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     public Mono<ResponseEntity<Void>> deleteProduct(String id) {
