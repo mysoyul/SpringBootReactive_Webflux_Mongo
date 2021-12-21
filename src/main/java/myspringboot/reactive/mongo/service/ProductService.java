@@ -45,6 +45,22 @@ public class ProductService {
     }
 
     public Mono<ResponseEntity<ProductDto>> saveProductRE(Mono<ProductDto> productDtoMono) {
+        return productDtoMono.map(AppUtils::dtoToEntity)
+                .flatMap(repository::insert)
+                .map(insProduct -> ResponseEntity.ok(AppUtils.entityToDto(insProduct)))
+                .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
+    }
+
+    public Mono<ProductDto> updateProduct(Mono<ProductDto> productDtoMono, String id){
+        return repository.findById(id)
+                //.flatMap(existProduct -> productDtoMono.map(dto -> AppUtils.dtoToEntity(dto))) //Mono<Product>
+                .flatMap(existProduct -> productDtoMono.map(AppUtils::dtoToEntity))
+                .doOnNext(product -> product.setId(id))
+                .flatMap(repository::save)
+                .map(AppUtils::entityToDto);
+    }
+
+    public Mono<ResponseEntity<ProductDto>> updateProductRE(Mono<ProductDto> productDtoMono, String id){
 
     }
 
